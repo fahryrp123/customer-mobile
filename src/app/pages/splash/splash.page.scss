@@ -1,0 +1,132 @@
+.splash-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  position: relative;
+  overflow: hidden;
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.fade-out {
+  opacity: 0;
+  transform: scale(1.1);
+}
+
+.splash-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.splash-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  animation: float 10s infinite ease-in-out alternate;
+}
+
+.splash-circle-1 {
+  width: 300px;
+  height: 300px;
+  top: -100px;
+  left: -100px;
+  animation-delay: 0s;
+}
+
+.splash-circle-2 {
+  width: 200px;
+  height: 200px;
+  bottom: -50px;
+  right: -50px;
+  animation-delay: -3s;
+}
+
+.splash-circle-3 {
+  width: 150px;
+  height: 150px;
+  top: 40%;
+  left: 60%;
+  animation-delay: -5s;
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, 30px) scale(1.1); }
+  100% { transform: translate(-20px, 10px) scale(0.9); }
+}
+
+.splash-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.splash-logo {
+  height: 120px;
+  object-fit: contain;
+  margin-bottom: 24px;
+  opacity: 0;
+  transform: scale(0.5) rotate(-10deg);
+  filter: drop-shadow(0 10px 25px rgba(0,0,0,0.3));
+}
+
+.logo-visible {
+  animation: splashLogoIn 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.splash-title {
+  color: white;
+  font-size: 32px;
+  font-weight: 900;
+  margin: 0 0 8px 0;
+  letter-spacing: -1px;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.splash-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 40px 0;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.text-visible {
+  animation: splashTextIn 0.8s ease-out forwards;
+}
+
+.splash-progress-container {
+  width: 200px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.splash-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.progress-active {
+  animation: splashProgressBar 2s ease-out forwards;
+}

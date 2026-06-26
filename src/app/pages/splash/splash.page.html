@@ -1,0 +1,25 @@
+<ion-content [fullscreen]="true" [scrollY]="false">
+  <div class="splash-container" [class.fade-out]="isLeaving">
+    
+    <!-- Animated background -->
+    <div class="splash-bg">
+      <div class="splash-circle splash-circle-1"></div>
+      <div class="splash-circle splash-circle-2"></div>
+      <div class="splash-circle splash-circle-3"></div>
+    </div>
+    
+    <!-- Logo -->
+    <div class="splash-content">
+      <img src="assets/logo-baru.png" alt="SewaMobilYuk" class="splash-logo" [class.logo-visible]="showLogo">
+      
+      <h1 class="splash-title" [class.text-visible]="showText">SewaMobilYuk</h1>
+      <p class="splash-subtitle" [class.text-visible]="showSubtitle">Rental Mobil Lepas Kunci Terpercaya</p>
+      
+      <!-- Progress bar -->
+      <div class="splash-progress-container" [class.text-visible]="showProgress">
+        <div class="splash-progress-bar" [class.progress-active]="animateProgress"></div>
+      </div>
+    </div>
+    
+  </div>
+</ion-content>

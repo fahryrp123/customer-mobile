@@ -1,0 +1,327 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * App Global CSS - SewaMobilYuk Premium Blue Theme
+ */
+
+:root {
+  --ion-font-family: 'Outfit', sans-serif;
+  
+  --ion-background-color: #f0f4ff;
+  --ion-background-color-rgb: 240, 244, 255;
+  --ion-text-color: #0f172a;
+  --ion-text-color-rgb: 15, 23, 42;
+  
+  --ion-color-primary: #2563eb;
+  --ion-color-primary-rgb: 37, 99, 235;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #1d4ed8;
+  --ion-color-primary-tint: #3b82f6;
+
+  --ion-color-secondary: #64748b;
+  --ion-color-secondary-rgb: 100, 116, 139;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #475569;
+  --ion-color-secondary-tint: #94a3b8;
+
+  --ion-color-step-50: #f1f5f9;
+  --ion-color-step-100: #e2e8f0;
+  --ion-color-step-150: #cbd5e1;
+  --ion-color-step-200: #94a3b8;
+  --ion-color-step-250: #64748b;
+  --ion-color-step-300: #475569;
+  --ion-color-step-350: #334155;
+  --ion-color-step-400: #1e293b;
+  --ion-color-step-450: #0f172a;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: #f0f4ff;
+  color: #0f172a;
+}
+
+/* Scrollbar hide */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/* =============================================
+   KEYFRAME ANIMATIONS
+   ============================================= */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInFast {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(40px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-40px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+  70% { transform: scale(1); box-shadow: 0 0 0 12px rgba(37, 99, 235, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes floatUp {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes ticketEntrance {
+  from { opacity: 0; transform: scale(0.85) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes borderPulse {
+  0%, 100% { border-color: rgba(37, 99, 235, 0.3); }
+  50% { border-color: rgba(37, 99, 235, 0.8); }
+}
+
+/* =============================================
+   ANIMATION UTILITY CLASSES
+   ============================================= */
+
+.animate-fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fade-in-fast { animation: fadeInFast 0.3s ease forwards; }
+.animate-zoom-in { animation: zoomIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-up { animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-in-right { animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-in-left { animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-float { animation: floatUp 3s ease-in-out infinite; }
+.animate-ticket { animation: ticketEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-border-pulse { animation: borderPulse 2s ease-in-out infinite; }
+
+/* Delays for staggered animations */
+.delay-50  { animation-delay: 50ms; }
+.delay-100 { animation-delay: 100ms; }
+.delay-150 { animation-delay: 150ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-700 { animation-delay: 700ms; }
+
+/* =============================================
+   PREMIUM COMPONENT STYLES
+   ============================================= */
+
+/* Blue Ambient Glow Background */
+.bg-app {
+  background: linear-gradient(145deg, #f0f4ff 0%, #e8eeff 50%, #f0f8ff 100%);
+}
+
+/* Premium Glass Card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Shimmer Loading Effect */
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Image background circular glow */
+.circle-glow-bg {
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, rgba(240, 244, 255, 0) 70%);
+}
+
+/* Premium Blue Gradient Button */
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-primary:active {
+  transform: scale(0.96);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+/* Animated Gradient Background */
+.animated-gradient {
+  background: linear-gradient(-45deg, #1d4ed8, #2563eb, #3b82f6, #1e40af);
+  background-size: 400% 400%;
+  animation: gradientShift 6s ease infinite;
+}
+
+/* Pill Tabs */
+.tab-pill {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tab-pill.active {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* Search Input */
+.search-pill-input {
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.06);
+  transition: all 0.3s ease;
+}
+.search-pill-input:focus {
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.12);
+}
+
+/* Custom floating tab bar */
+.tab-bar-float {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.08), 0 8px 32px rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+/* Status badge animations */
+.status-badge {
+  transition: all 0.3s ease;
+}
+
+/* Card hover effects */
+.car-card {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.car-card:active {
+  transform: scale(0.97);
+}
+
+/* Booking ticket style */
+.ticket-card {
+  box-shadow: 0 20px 60px rgba(37, 99, 235, 0.15), 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Dashed border animation for ticket divider */
+.ticket-divider {
+  background: repeating-linear-gradient(90deg, #cbd5e1 0, #cbd5e1 6px, transparent 6px, transparent 12px);
+  height: 1px;
+}
+
+/* Live indicator */
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: pulse-ring 1.5s ease-in-out infinite;
+}
+
+/* Blue decorative pattern */
+.blue-pattern {
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(37, 99, 235, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 50%);
+}
+
+/* Premium input styling */
+.form-input-premium {
+  transition: all 0.3s ease;
+  background: rgba(248, 250, 252, 0.8);
+}
+.form-input-premium:focus {
+  background: #fff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+}
+
+/* Poster pan animation - moves image left and right */
+@keyframes posterPan {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-16.66%); }
+}
+
+.poster-pan-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 120%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  animation: posterPan 8s ease-in-out infinite alternate;
+}
+
+/* Custom segment - active button text white */
+ion-segment-button.segment-button-checked {
+  --color: #ffffff !important;
+  --indicator-color: #2563eb;
+}
+ion-segment-button {
+  --color: #64748b;
+  --color-checked: #ffffff !important;
+}
+
+/* Splash screen animation */
+@keyframes splashFadeOut {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.1); }
+}
+@keyframes splashLogoIn {
+  0% { opacity: 0; transform: scale(0.5) rotate(-10deg); }
+  60% { opacity: 1; transform: scale(1.1) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+@keyframes splashTextIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes splashProgressBar {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}

@@ -1,0 +1,77 @@
+<ion-content [fullscreen]="true">
+  <div class="h-full flex flex-col font-sans overflow-hidden relative bg-white">
+    
+    <!-- Dynamic Background Image per Slide -->
+    <div class="absolute inset-0 transition-opacity duration-1000" *ngFor="let slide of slides; let i = index" [style.opacity]="i === currentSlide ? '1' : '0'">
+      <img [src]="slide.image" class="w-full h-full object-cover">
+    </div>
+
+    <!-- Gradient Overlay for Text Readability (BRIGHT MODE) -->
+    <div class="absolute inset-0 pointer-events-none" style="background: linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 40%, rgba(255,255,255,0.1) 100%);"></div>
+
+    <!-- Top Bar -->
+    <div class="pt-14 px-6 flex justify-between items-center z-30 relative anim-fade-down">
+      <div class="w-16 h-10 flex items-center gap-2">
+        <!-- Minimalist luxury logo -->
+        <ion-icon name="car-sport" class="text-2xl text-slate-800 bg-white/70 p-2 rounded-full backdrop-blur-md"></ion-icon>
+      </div>
+      <button (click)="finishWelcome()" class="text-slate-800 font-bold text-[14px] px-4 py-2 active:opacity-50 transition-opacity tracking-widest uppercase text-xs bg-white/70 rounded-full backdrop-blur-md">
+        Lewati
+      </button>
+    </div>
+
+    <!-- Scroll Snap Slider -->
+    <div #slider class="flex-1 flex overflow-x-auto snap-x snap-mandatory scrollbar-hide relative z-20" (scroll)="onScroll($event)">
+      
+      <div *ngFor="let slide of slides; let i = index" 
+           class="min-w-full h-full flex flex-col items-start justify-end pb-36 px-8 snap-center text-left">
+        
+        <!-- Text Content -->
+        <div class="w-full anim-slide-up delay-200">
+          <div class="inline-flex items-center gap-2 mb-4">
+            <div class="w-8 h-[2px] bg-[#d4af37]"></div>
+            <span class="text-[10px] font-black text-[#d4af37] uppercase tracking-[0.2em]">SewaMobilYuk</span>
+          </div>
+          
+          <h2 class="text-[36px] font-black text-slate-900 leading-[1.1] mb-5 tracking-tight font-serif" style="font-family: 'Playfair Display', serif;">
+            {{ slide.title }}
+          </h2>
+          <p class="text-slate-600 text-[15px] leading-relaxed font-medium max-w-[280px]">
+            {{ slide.description }}
+          </p>
+        </div>
+        
+      </div>
+
+    </div>
+
+    <!-- Bottom Action Area -->
+    <div class="px-8 pb-12 w-full relative z-30 anim-slide-up delay-400 absolute bottom-0 left-0 right-0 flex items-center justify-between">
+      
+      <!-- Individual Pagination -->
+      <div class="flex space-x-2 items-center">
+        <div *ngFor="let s of slides; let idx = index" 
+          class="transition-all duration-500 rounded-full"
+          [style]="idx === currentSlide ? 'width: 30px; height: 4px; background: #d4af37;' : 'width: 10px; height: 4px; background: #e2e8f0;'">
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="flex-shrink-0">
+        <button *ngIf="currentSlide < slides.length - 1" (click)="nextSlide()"
+          class="w-16 h-16 rounded-full flex items-center justify-center text-black active:scale-95 transition-transform"
+          style="background: linear-gradient(135deg, #f5ecd5 0%, #d4af37 100%); box-shadow: 0 10px 30px rgba(212,175,55,0.2);">
+          <ion-icon name="arrow-forward-outline" class="text-2xl"></ion-icon>
+        </button>
+        
+        <button *ngIf="currentSlide === slides.length - 1" (click)="finishWelcome()"
+          class="px-8 py-4 rounded-full font-bold text-[14px] text-black active:scale-95 transition-transform tracking-widest uppercase"
+          style="background: linear-gradient(135deg, #f5ecd5 0%, #d4af37 100%); box-shadow: 0 10px 30px rgba(212,175,55,0.2);">
+          Mulai
+        </button>
+      </div>
+      
+    </div>
+
+  </div>
+</ion-content>

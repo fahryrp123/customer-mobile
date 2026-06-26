@@ -1,0 +1,364 @@
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  <div class="min-h-screen relative font-sans" style="background: linear-gradient(160deg, #eef2ff 0%, #f0f4ff 40%, #e8f4fd 100%);">
+    
+    <!-- Decorative blobs -->
+    <div class="absolute top-0 left-0 w-full overflow-hidden pointer-events-none">
+      <div class="absolute top-[-60px] left-[-80px] w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+      <div class="absolute top-[-40px] right-[-60px] w-72 h-72 bg-indigo-500/8 rounded-full blur-3xl"></div>
+    </div>
+
+    <!-- Header with Segment -->
+    <div class="px-5 pt-14 pb-3 sticky top-0 z-50" 
+         style="background: rgba(238,242,255,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(37,99,235,0.08);">
+      
+      <div class="flex justify-between items-center mb-3">
+        <div>
+          <p class="text-[9px] font-bold text-blue-500 uppercase tracking-widest">Reservasi Anda</p>
+          <h1 class="text-xl font-black text-slate-900">Booking Saya</h1>
+        </div>
+      </div>
+
+      <!-- Segment Controls -->
+      <ion-segment [(ngModel)]="activeSegment" mode="ios" class="rounded-2xl p-0.5 text-xs custom-segment"
+                   style="background: rgba(37,99,235,0.08); --indicator-color: #2563eb; --indicator-box-shadow: 0 4px 12px rgba(37,99,235,0.3); --color-checked: #ffffff;">
+        <ion-segment-button value="active" class="font-bold rounded-xl py-1">
+          <ion-label class="text-xs font-black">Perjalanan Aktif</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="history" class="font-bold rounded-xl py-1">
+          <ion-label class="text-xs font-black">Riwayat Sewa</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="p-6 flex flex-col items-center justify-center mt-16 gap-3">
+      <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow: 0 6px 20px rgba(37,99,235,0.35);">
+        <ion-spinner name="crescent" class="text-white"></ion-spinner>
+      </div>
+      <p class="text-xs font-bold text-blue-600 uppercase tracking-widest">Memuat data...</p>
+    </div>
+
+    <!-- Active Bookings -->
+    <div *ngIf="!isLoading && activeSegment === 'active'" class="p-5 pb-28 space-y-4">
+      
+      <!-- Empty State -->
+      <div *ngIf="getActiveBookings().length === 0" class="p-10 flex flex-col items-center justify-center h-[55vh] text-center animate-fade-in">
+        <div class="w-20 h-20 rounded-[28px] flex items-center justify-center mb-5 animate-float"
+             style="background: linear-gradient(135deg, #dbeafe, #ede9fe); border: 1px solid rgba(37,99,235,0.15);">
+          <ion-icon name="car-sport-outline" class="text-3xl text-blue-500"></ion-icon>
+        </div>
+        <h2 class="text-sm font-black text-slate-900 mb-2">Belum Ada Perjalanan Aktif</h2>
+        <p class="text-[11px] text-slate-400 max-w-[220px] mx-auto leading-relaxed mb-5">Anda belum memiliki sewa yang sedang berjalan. Yuk mulai perjalananmu!</p>
+        <button routerLink="/home" class="px-6 py-3 text-white text-[10px] font-black rounded-2xl uppercase tracking-wider active:scale-95 transition-transform"
+                style="background: linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow: 0 6px 20px rgba(37,99,235,0.35);">
+          Temukan Mobil
+        </button>
+      </div>
+
+      <!-- Active Booking Cards -->
+      <div *ngFor="let item of getActiveBookings(); let i = index" (click)="openTicketModal(item)"
+        class="bg-white rounded-[28px] overflow-hidden cursor-pointer animate-fade-in relative group"
+        [class]="'delay-' + (i * 100)"
+        style="border: 1px solid rgba(37,99,235,0.12); box-shadow: 0 4px 24px rgba(37,99,235,0.1);">
+        
+        <!-- Colored top accent bar based on status -->
+        <div class="h-1.5 w-full"
+          [style]="(item.status?.toLowerCase()?.includes('pending') || item.status?.toLowerCase()?.includes('booked') || item.status?.toLowerCase()?.includes('waiting')) ? 'background: linear-gradient(90deg, #f59e0b, #fbbf24);' : 
+                   (item.status?.toLowerCase()?.includes('approv') || item.status?.toLowerCase()?.includes('confirm') || item.status?.toLowerCase()?.includes('konfirmasi') || item.status?.toLowerCase()?.includes('disetujui')) ? 'background: linear-gradient(90deg, #10b981, #34d399);' : 
+                   (item.status?.toLowerCase()?.includes('active') || item.status?.toLowerCase()?.includes('rented') || item.status?.toLowerCase()?.includes('berjalan') || item.status?.toLowerCase()?.includes('running')) ? 'background: linear-gradient(90deg, #3b82f6, #06b6d4);' : 
+                   'background: linear-gradient(90deg, #2563eb, #6366f1);'">
+        </div>
+
+        <div class="p-5">
+          <!-- Status Badge -->
+          <div class="absolute top-7 right-5 px-2.5 py-1 text-[8px] font-black rounded-xl border uppercase tracking-wider"
+            [ngClass]="getStatusColor(item.status)">
+            {{ getStatusText(item.status) }}
+          </div>
+
+          <div class="flex items-center gap-4 mb-4">
+            <!-- Car Thumbnail -->
+            <div class="w-16 h-16 rounded-2xl flex items-center justify-center p-1.5 relative"
+                 style="background: linear-gradient(135deg, #f0f4ff, #e8f0fe); border: 1px solid rgba(37,99,235,0.1);">
+              <img [src]="item.car?.image_url || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=400&auto=format&fit=crop'" 
+                   class="max-h-full max-w-full object-contain drop-shadow-sm">
+            </div>
+            
+            <div class="pr-20">
+              <h3 class="font-black text-slate-900 text-sm truncate">{{ item.car?.name_car || 'Armada Sewa' }}</h3>
+              <p class="text-[10px] text-blue-500 font-bold mt-0.5 flex items-center gap-1">
+                <ion-icon name="calendar-outline" class="text-xs"></ion-icon>
+                {{ item.tanggal_mulai | date:'dd MMM' }} → {{ item.tanggal_selesai | date:'dd MMM yyyy' }}
+              </p>
+            </div>
+          </div>
+
+          <div class="border-t pt-3.5 flex justify-between items-center" style="border-color: rgba(37,99,235,0.08);">
+            <div>
+              <p class="text-[8px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Total Bayar</p>
+              <p class="font-black text-blue-600 text-base">Rp{{ item.total_harga | number }}</p>
+            </div>
+            
+            <div class="flex gap-2 items-center">
+              <button *ngIf="canCancel(item)" (click)="$event.stopPropagation(); confirmCancel(item.id)"
+                class="px-3 py-1.5 text-rose-600 text-[9px] font-black active:scale-95 transition-all uppercase tracking-wider rounded-xl"
+                style="background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2);">
+                Batalkan
+              </button>
+              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black text-blue-600 uppercase tracking-wider"
+                   style="background: rgba(37,99,235,0.06); border: 1px solid rgba(37,99,235,0.15);">
+                Tiket <ion-icon name="ticket-outline"></ion-icon>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rental History -->
+    <div *ngIf="!isLoading && activeSegment === 'history'" class="p-5 pb-28 space-y-4">
+      
+      <!-- Empty State -->
+      <div *ngIf="getHistoryBookings().length === 0" class="p-10 flex flex-col items-center justify-center h-[55vh] text-center animate-fade-in">
+        <div class="w-20 h-20 rounded-[28px] flex items-center justify-center mb-5 animate-float"
+             style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0); border: 1px solid rgba(100,116,139,0.15);">
+          <ion-icon name="document-text-outline" class="text-3xl text-slate-400"></ion-icon>
+        </div>
+        <h2 class="text-sm font-black text-slate-900 mb-2">Belum Ada Riwayat</h2>
+        <p class="text-[11px] text-slate-400 max-w-[220px] mx-auto leading-relaxed">Riwayat sewa yang selesai atau dibatalkan akan muncul di sini.</p>
+      </div>
+
+      <!-- History Cards -->
+      <div *ngFor="let item of getHistoryBookings(); let i = index" (click)="openTicketModal(item)"
+        class="bg-white rounded-[28px] overflow-hidden cursor-pointer animate-fade-in relative"
+        [class]="'delay-' + (i * 100)"
+        style="border: 1px solid rgba(100,116,139,0.12); box-shadow: 0 2px 12px rgba(15,23,42,0.04);">
+        
+        <!-- Status color bar -->
+        <div class="h-1.5 w-full"
+          [style]="item.status?.toLowerCase()?.includes('cancel') || item.status?.toLowerCase()?.includes('reject') ? 
+                   'background: linear-gradient(90deg, #ef4444, #f87171);' : 
+                   'background: linear-gradient(90deg, #3b82f6, #6366f1);'">
+        </div>
+
+        <div class="p-5">
+          <!-- Status Badge -->
+          <div class="absolute top-7 right-5 px-2.5 py-1 text-[8px] font-black rounded-xl border uppercase tracking-wider"
+            [ngClass]="getStatusColor(item.status)">
+            {{ getStatusText(item.status) }}
+          </div>
+
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center p-1.5"
+                 style="background: #f8fafc; border: 1px solid #e2e8f0;">
+              <img [src]="item.car?.image_url || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=400&auto=format&fit=crop'" 
+                   class="max-h-full max-w-full object-contain opacity-70">
+            </div>
+            <div class="pr-20">
+              <h3 class="font-black text-slate-700 text-sm truncate">{{ item.car?.name_car || 'Armada Sewa' }}</h3>
+              <p class="text-[10px] text-slate-400 font-bold mt-0.5 flex items-center gap-1">
+                <ion-icon name="calendar-outline" class="text-xs"></ion-icon>
+                {{ item.tanggal_mulai | date:'dd MMM' }} → {{ item.tanggal_selesai | date:'dd MMM yyyy' }}
+              </p>
+            </div>
+          </div>
+
+          <div class="border-t pt-3.5 flex justify-between items-center" style="border-color: #f1f5f9;">
+            <div>
+              <p class="text-[8px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Total Bayar</p>
+              <p class="font-black text-slate-600 text-sm">Rp{{ item.total_harga | number }}</p>
+            </div>
+            <div class="flex items-center gap-1.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">
+              Detail <ion-icon name="arrow-forward"></ion-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<!-- Premium Floating Tab Bar -->
+<div class="fixed bottom-5 left-5 right-5 text-slate-400 rounded-[28px] z-50 flex justify-around items-center py-3.5 px-2 tab-bar-float">
+  <a routerLink="/home" routerDirection="back" class="flex flex-col items-center gap-1 relative px-4 hover:text-blue-500 transition-colors">
+    <div class="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-100">
+      <ion-icon name="home-outline" class="text-lg text-slate-500"></ion-icon>
+    </div>
+    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Home</span>
+  </a>
+  <a routerLink="/history" class="flex flex-col items-center gap-1 relative px-4">
+    <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+      <ion-icon name="compass" class="text-lg text-white"></ion-icon>
+    </div>
+    <span class="text-[9px] font-black text-blue-600 uppercase tracking-wider">Booking</span>
+  </a>
+  <a routerLink="/profile" routerDirection="forward" class="flex flex-col items-center gap-1 relative px-4 hover:text-blue-500 transition-colors">
+    <div class="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-100">
+      <ion-icon name="person-outline" class="text-lg text-slate-500"></ion-icon>
+    </div>
+    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Profil</span>
+  </a>
+</div>
+
+<!-- Ticket Modal -->
+<ion-modal [isOpen]="isTicketModalOpen" (didDismiss)="closeTicketModal()">
+  <ng-template>
+    <div class="min-h-full flex flex-col font-sans pt-14 pb-6 px-5 overflow-y-auto" 
+         style="background: linear-gradient(160deg, #eef2ff 0%, #f0f4ff 50%, #e8f4fd 100%);">
+      
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-5">
+        <div>
+          <p class="text-[9px] font-bold text-blue-500 uppercase tracking-widest">Detail Reservasi</p>
+          <h2 class="text-xl font-black text-slate-900">Tiket Booking</h2>
+        </div>
+        <button (click)="closeTicketModal()" class="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-slate-600 active:scale-90 transition-transform" style="border: 1px solid rgba(37,99,235,0.15); box-shadow: 0 2px 8px rgba(37,99,235,0.08);">
+          <ion-icon name="close-outline" class="text-xl"></ion-icon>
+        </button>
+      </div>
+
+      <!-- Ticket Card -->
+      <div *ngIf="selectedTicket" class="bg-white rounded-[32px] overflow-hidden animate-ticket" 
+           style="box-shadow: 0 24px 64px rgba(37,99,235,0.18), 0 4px 16px rgba(0,0,0,0.06); border: 1px solid rgba(37,99,235,0.1);">
+        
+        <!-- Ticket Header Band -->
+        <div class="h-2 w-full" style="background: linear-gradient(-45deg, #1d4ed8, #2563eb, #3b82f6, #6366f1); background-size: 300% 300%; animation: gradientShift 4s ease infinite;"></div>
+
+        <!-- Top Half -->
+        <div class="p-6 pb-4" style="background: linear-gradient(135deg, rgba(37,99,235,0.03), rgba(99,102,241,0.03));">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <span class="text-[8px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-1.5">
+                <ion-icon name="car-sport" class="text-xs"></ion-icon>
+                SewaMobilYuk
+              </span>
+              <h2 class="text-lg font-black text-slate-900 mt-0.5">TIKET RESERVASI</h2>
+            </div>
+            <div class="px-3 py-1.5 text-[9px] font-black rounded-xl border uppercase tracking-wider"
+              [ngClass]="getStatusColor(selectedTicket.status)">
+              {{ getStatusText(selectedTicket.status) }}
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 border-t pt-4" style="border-color: rgba(37,99,235,0.08);">
+            <div>
+              <p class="text-[8px] text-blue-400 font-black uppercase tracking-wider">Kode Booking</p>
+              <p class="text-sm font-black text-slate-800 tracking-wider">#{{ selectedTicket.no_reservasi || selectedTicket.id }}</p>
+            </div>
+            <div>
+              <p class="text-[8px] text-blue-400 font-black uppercase tracking-wider">Penyewa</p>
+              <p class="text-xs font-black text-slate-800 truncate">{{ currentProfileName }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ticket Divider with holes -->
+        <div class="relative flex items-center my-0">
+          <div class="absolute left-[-14px] w-7 h-7 rounded-full" style="background: linear-gradient(160deg, #eef2ff, #f0f4ff);"></div>
+          <div class="w-full mx-5 ticket-divider"></div>
+          <div class="absolute right-[-14px] w-7 h-7 rounded-full" style="background: linear-gradient(160deg, #eef2ff, #f0f4ff);"></div>
+        </div>
+
+        <!-- Bottom Half - Car Info -->
+        <div class="p-6 pt-5 space-y-5">
+          
+          <!-- Car Details -->
+          <div class="flex gap-4 items-center rounded-2xl p-4" style="background: linear-gradient(135deg, #f0f4ff, #e8f0fe); border: 1px solid rgba(37,99,235,0.1);">
+            <div class="w-16 h-14 flex items-center justify-center p-1 bg-white rounded-xl" style="border: 1px solid rgba(37,99,235,0.1);">
+              <img [src]="selectedTicket.car?.image_url || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=400&auto=format&fit=crop'" 
+                   class="max-h-full max-w-full object-contain">
+            </div>
+            <div>
+              <h4 class="text-sm font-black text-slate-900">{{ selectedTicket.car?.name_car || 'Armada Pilihan' }}</h4>
+              <p class="text-[9px] text-blue-500 mt-0.5 font-bold uppercase tracking-wide">
+                {{ selectedTicket.car?.plate_number || '-' }} • {{ selectedTicket.car?.transmisi || 'Auto' }} • {{ selectedTicket.car?.year_of_car || '' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Trip Details Grid -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3.5 rounded-2xl col-span-2" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+              <p class="text-[8px] text-slate-400 font-black uppercase tracking-wider mb-1">Metode Pengambilan</p>
+              <p class="text-xs font-black text-slate-800 capitalize">{{ selectedTicket.pickupMethod || selectedTicket.pickup_method || 'Cabang' }}</p>
+            </div>
+            
+            <div class="p-3.5 rounded-2xl col-span-2" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+              <p class="text-[8px] text-slate-400 font-black uppercase tracking-wider mb-1">
+                {{ (selectedTicket.pickupMethod === 'antar' || selectedTicket.pickup_method === 'antar') ? 'Alamat Pengiriman' : 'Cabang / Lokasi' }}
+              </p>
+              <p *ngIf="selectedTicket.pickupMethod !== 'antar' && selectedTicket.pickup_method !== 'antar'" class="text-xs font-black text-slate-800">
+                {{ selectedTicket.branch?.address }}, {{ selectedTicket.branch?.city }}
+              </p>
+              <p *ngIf="selectedTicket.pickupMethod === 'antar' || selectedTicket.pickup_method === 'antar'" class="text-xs font-black text-slate-800">
+                {{ selectedTicket.deliveryAddress || selectedTicket.delivery_address || selectedTicket.cust_address || '-' }}
+              </p>
+            </div>
+            <div class="p-3.5 rounded-2xl" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+              <p class="text-[8px] text-slate-400 font-black uppercase tracking-wider mb-1">Tanggal Mulai</p>
+              <p class="text-xs font-black text-slate-800">{{ selectedTicket.tanggal_mulai | date:'dd MMM yyyy' }}</p>
+            </div>
+            <div class="p-3.5 rounded-2xl" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+              <p class="text-[8px] text-slate-400 font-black uppercase tracking-wider mb-1">Tanggal Selesai</p>
+              <p class="text-xs font-black text-slate-800">{{ selectedTicket.tanggal_selesai | date:'dd MMM yyyy' }}</p>
+            </div>
+            <div class="p-3.5 rounded-2xl" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+              <p class="text-[8px] text-slate-400 font-black uppercase tracking-wider mb-1">Metode Bayar</p>
+              <p class="text-xs font-black text-slate-800 capitalize">{{ selectedTicket.payment?.payment_method || selectedTicket.payment_method || selectedTicket.paymentMethod || selectedTicket.metode_pembayaran || 'Cash' }}</p>
+            </div>
+            <div class="p-3.5 rounded-2xl" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+              <p class="text-[8px] text-slate-400 font-black uppercase tracking-wider mb-1">Status Bayar</p>
+              <p class="text-xs font-black text-slate-800 capitalize">{{ selectedTicket.payment?.status || selectedTicket.payment_status || selectedTicket.paymentStatus || 'Pending' }}</p>
+            </div>
+          </div>
+
+          <!-- Rejection Reason (If applicable) -->
+          <div *ngIf="selectedTicket.status?.toLowerCase()?.includes('reject') || selectedTicket.status?.toLowerCase()?.includes('tolak')" 
+               class="p-4 rounded-2xl border" style="background: rgba(244,63,94,0.05); border-color: rgba(244,63,94,0.15);">
+            <div class="flex items-center gap-2 mb-1.5">
+              <ion-icon name="warning" class="text-rose-500"></ion-icon>
+              <p class="text-[9px] font-black text-rose-600 uppercase tracking-wider">Alasan Penolakan</p>
+            </div>
+            <p class="text-xs font-bold text-rose-900 leading-relaxed">
+              {{ selectedTicket.reason_rejected || selectedTicket.alasan_ditolak || selectedTicket.reason || selectedTicket.alasan || 'Pemesanan tidak dapat dipenuhi saat ini.' }}
+            </p>
+          </div>
+
+          <!-- Total -->
+          <div class="flex justify-between items-center pt-4 border-t" style="border-color: rgba(37,99,235,0.08);">
+            <div>
+              <p class="text-[8px] text-slate-400 font-black uppercase tracking-wider">Total Pembayaran</p>
+              <p class="text-2xl font-black text-blue-600">Rp{{ selectedTicket.total_harga | number }}</p>
+              <p *ngIf="(selectedTicket.pickupMethod === 'antar' || selectedTicket.pickup_method === 'antar') && (selectedTicket.deliveryFee || selectedTicket.delivery_fee)" class="text-[9px] text-slate-500 font-bold mt-1">
+                Termasuk Ongkir: Rp{{ selectedTicket.deliveryFee || selectedTicket.delivery_fee | number }}
+              </p>
+            </div>
+            <div class="flex flex-col gap-2 items-end">
+              <button *ngIf="canCancel(selectedTicket)" 
+                (click)="confirmCancel(selectedTicket.id); closeTicketModal()"
+                class="px-4 py-2 text-rose-600 text-[10px] font-black uppercase tracking-wider rounded-xl active:scale-95 transition-all"
+                style="background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2);">
+                Batalkan
+              </button>
+              <button *ngIf="(selectedTicket.status?.toLowerCase()?.includes('cancel') || selectedTicket.status?.toLowerCase()?.includes('batal') || selectedTicket.status?.toLowerCase()?.includes('reject') || selectedTicket.status?.toLowerCase()?.includes('tolak')) && !selectedTicket.status?.toLowerCase()?.includes('refund') && (selectedTicket.payment?.payment_method || selectedTicket.payment_method || selectedTicket.paymentMethod || selectedTicket.metode_pembayaran)?.toLowerCase() === 'transfer'" 
+                (click)="requestRefund(selectedTicket.id); closeTicketModal()"
+                class="px-4 py-2 text-blue-600 text-[10px] font-black uppercase tracking-wider rounded-xl active:scale-95 transition-all"
+                style="background: rgba(37,99,235,0.06); border: 1px solid rgba(37,99,235,0.2);">
+                Ajukan Refund
+              </button>
+            </div>
+          </div>
+
+          <!-- Footer Notice -->
+          <div class="p-6 pt-0 text-center">
+            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Tunjukkan tiket ini saat pengambilan kendaraan</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </ng-template>
+</ion-modal>

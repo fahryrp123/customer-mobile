@@ -1,0 +1,338 @@
+<ion-content [fullscreen]="true" class="bg-app">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  <div class="min-h-screen relative font-sans" style="background: linear-gradient(160deg, #eef2ff 0%, #f0f4ff 40%, #e8f4fd 100%);">
+    
+    <!-- Premium Image Background -->
+    <div class="absolute top-0 left-0 w-full h-[320px] overflow-hidden pointer-events-none">
+      <!-- Background Image (Unsplash Car/Road) -->
+      <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=800&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-20" style="filter: grayscale(20%) contrast(120%);">
+      <!-- Gradient Overlay to blend with the app's overall background -->
+      <div class="absolute inset-0" style="background: linear-gradient(to bottom, rgba(238,242,255,0.1) 0%, rgba(238,242,255,0.75) 60%, rgba(238,242,255,1) 100%);"></div>
+    </div>
+    
+    <!-- Header App Bar -->
+    <div class="px-5 pt-14 pb-4 flex justify-between items-center sticky top-0 z-50"
+         style="background: rgba(238, 242, 255, 0.92); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(37,99,235,0.08);">
+      <div class="flex items-center gap-3 animate-slide-up">
+        <div class="flex items-center gap-2">
+          <img src="assets/logo-baru.png" alt="SewaMobilYuk Logo" class="h-10 object-contain drop-shadow-sm">
+          <h1 class="text-sm font-black text-slate-900 leading-none tracking-tight">SewaMobilYuk</h1>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2 animate-slide-up delay-100">
+        <!-- Profile Avatar -->
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm"
+             style="background: linear-gradient(135deg, #dbeafe, #eff6ff); border: 1.5px solid #bfdbfe;">
+          <span class="text-[11px] font-black text-blue-600">{{ userName.substring(0, 2).toUpperCase() }}</span>
+        </div>
+        <!-- Notification -->
+        <div (click)="openNotifications()" class="w-9 h-9 bg-white rounded-xl flex items-center justify-center relative active:scale-90 transition-transform cursor-pointer"
+             style="border: 1.5px solid rgba(37,99,235,0.15); box-shadow: 0 2px 8px rgba(37,99,235,0.08);">
+          <ion-icon name="notifications-outline" class="text-base text-blue-600"></ion-icon>
+          <span *ngIf="unreadNotificationsCount > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[8px] text-white font-bold shadow-sm">{{ unreadNotificationsCount }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pb-28">
+
+      <!-- Rejected Banner -->
+      <div *ngIf="rejectedReservationsCount > 0" class="px-5 pt-4 animate-fade-in">
+        <div class="bg-rose-50 border border-rose-200 rounded-2xl p-3.5 flex items-center gap-3 shadow-sm" (click)="router.navigate(['/history'], { queryParams: { tab: 'history' } })">
+          <div class="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
+            <ion-icon name="warning" class="text-rose-500 text-lg"></ion-icon>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-xs font-bold text-rose-700 mb-0.5">Pesanan Ditolak!</h3>
+            <p class="text-[10px] text-rose-600 font-medium leading-snug">Ada {{ rejectedReservationsCount }} pesanan Anda yang ditolak. Cek alasan dan ajukan pengembalian dana.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <ion-icon name="chevron-forward" class="text-rose-400 text-sm"></ion-icon>
+            <div class="w-px h-6 bg-rose-200/50"></div>
+            <button (click)="dismissRejectedBanner($event)" class="w-6 h-6 flex items-center justify-center rounded-full bg-rose-100 hover:bg-rose-200 text-rose-500 transition-colors">
+              <ion-icon name="close" class="text-sm"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Greeting + Search -->
+      <div class="px-5 pt-5 pb-2 animate-fade-in">
+        <p class="text-[11px] text-blue-600 font-bold uppercase tracking-widest mb-1">Selamat Datang</p>
+        <h2 class="text-2xl font-black text-slate-900 mb-4 leading-tight">Temukan Armada <br><span class="text-blue-700">Impian Anda</span></h2>
+        
+        <!-- Search Row -->
+        <div class="flex gap-2.5">
+          <div class="relative flex-1">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <ion-icon name="search-outline" class="text-blue-400 text-base"></ion-icon>
+            </div>
+            <input type="search" [(ngModel)]="searchQuery" (input)="filterCars()"
+              class="w-full pl-11 pr-4 py-3.5 rounded-2xl text-slate-800 placeholder-slate-400 text-xs outline-none search-pill-input"
+              style="background: rgba(255,255,255,0.9); border: 1.5px solid rgba(37,99,235,0.12); font-weight: 600;"
+              placeholder="Cari mobil impian...">
+          </div>
+          <button (click)="toggleFilters()"
+            class="w-12 h-12 rounded-2xl flex items-center justify-center text-sm transition-all active:scale-90"
+            [style]="showFilters ? 'background: linear-gradient(135deg,#2563eb,#1d4ed8); color: white; box-shadow: 0 4px 12px rgba(37,99,235,0.35);' : 'background: rgba(255,255,255,0.9); color: #2563eb; border: 1.5px solid rgba(37,99,235,0.15);'">
+            <ion-icon [name]="showFilters ? 'close-outline' : 'options-outline'" class="text-lg"></ion-icon>
+          </button>
+        </div>
+
+        <!-- Collapsible Filters -->
+        <div *ngIf="showFilters" class="mt-3 p-4 bg-white rounded-2xl shadow-sm space-y-3 animate-fade-in" style="border: 1px solid rgba(37,99,235,0.1);">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[8px] font-black text-blue-500 uppercase tracking-wider mb-1.5 ml-1">Transmisi</label>
+              <select [(ngModel)]="selectedTransmission" (change)="filterCars()"
+                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-semibold text-slate-700 outline-none">
+                <option value="all">Semua Transmisi</option>
+                <option value="automatic">Automatic</option>
+                <option value="manual">Manual</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[8px] font-black text-blue-500 uppercase tracking-wider mb-1.5 ml-1">Urutan Harga</label>
+              <select [(ngModel)]="sortByPrice" (change)="filterCars()"
+                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-semibold text-slate-700 outline-none">
+                <option value="none">Default</option>
+                <option value="low_to_high">Terendah → Tertinggi</option>
+                <option value="high_to_low">Tertinggi → Terendah</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Banner Card -->
+      <div class="px-5 mb-5 animate-fade-in delay-100">
+        <div class="rounded-[28px] overflow-hidden relative shadow-lg h-[140px]" style="box-shadow: 0 12px 40px rgba(37,99,235,0.25);">
+          <img src="assets/poster.jpeg" alt="Sewa Mobil Lepas Kunci Karawang Terpercaya" 
+               class="poster-pan-img">
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="px-5 mb-5 animate-fade-in delay-150">
+        <div class="grid grid-cols-3 gap-2.5">
+          <div class="bg-white rounded-2xl p-3.5 text-center" style="border: 1px solid rgba(37,99,235,0.1); box-shadow: 0 2px 12px rgba(37,99,235,0.06);">
+            <p class="text-xl font-black text-blue-600">{{ cars.length }}</p>
+            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wide mt-0.5">Armada</p>
+          </div>
+          <div class="bg-white rounded-2xl p-3.5 text-center" style="border: 1px solid rgba(37,99,235,0.1); box-shadow: 0 2px 12px rgba(37,99,235,0.06);">
+            <p class="text-xl font-black text-blue-600">24h</p>
+            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wide mt-0.5">Layanan</p>
+          </div>
+          <div class="bg-white rounded-2xl p-3.5 text-center" style="border: 1px solid rgba(37,99,235,0.1); box-shadow: 0 2px 12px rgba(37,99,235,0.06);">
+            <p class="text-xl font-black text-blue-600">{{ branches.length > 0 ? branches.length : 1 }}</p>
+            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wide mt-0.5">Cabang</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories Pills -->
+      <div class="mb-5 animate-fade-in delay-200">
+        <div class="flex overflow-x-auto gap-2.5 px-5 pb-2 scrollbar-hide">
+          <div *ngFor="let cat of categories; let i = index" (click)="selectCategory(i)"
+            class="flex items-center gap-1.5 px-4 py-2 rounded-2xl cursor-pointer border transition-all duration-300 shrink-0 font-bold text-xs"
+            [style]="cat.active 
+              ? 'background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border-color: transparent; box-shadow: 0 4px 14px rgba(37,99,235,0.35);' 
+              : 'background: rgba(255,255,255,0.9); color: #64748b; border-color: rgba(37,99,235,0.12);'">
+            <ion-icon [name]="cat.icon" class="text-sm"></ion-icon>
+            <span>{{ cat.name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Armada Grid Section -->
+      <div class="px-5 animate-fade-in delay-300">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xs font-black tracking-wider text-slate-900 uppercase">Armada Pilihan</h2>
+        </div>
+
+        <!-- Loading Skeleton -->
+        <div *ngIf="isLoading" class="grid grid-cols-2 gap-4">
+          <div *ngFor="let i of [1,2,3,4]" class="bg-white rounded-[28px] p-3 overflow-hidden" style="border: 1px solid rgba(37,99,235,0.1);">
+            <div class="h-28 rounded-2xl mb-3 skeleton-shimmer"></div>
+            <div class="h-4 rounded w-3/4 mb-2 skeleton-shimmer"></div>
+            <div class="h-3 rounded w-1/2 mb-4 skeleton-shimmer"></div>
+            <div class="flex justify-between">
+              <div class="h-5 rounded w-1/3 skeleton-shimmer"></div>
+              <div class="h-5 rounded w-6 skeleton-shimmer"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!isLoading && filteredCars.length === 0" class="text-center py-12 bg-white rounded-[28px] p-8" style="border: 1px solid rgba(37,99,235,0.1);">
+          <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-3" style="border: 1px solid rgba(37,99,235,0.1);">
+            <ion-icon name="car-outline" class="text-2xl text-blue-400"></ion-icon>
+          </div>
+          <p class="text-xs font-bold text-slate-500">Tidak ada mobil yang cocok.</p>
+        </div>
+
+        <!-- Cars Grid -->
+        <div *ngIf="!isLoading && filteredCars.length > 0" class="grid grid-cols-2 gap-4">
+          <div *ngFor="let car of filteredCars; let i = index" [routerLink]="['/car-detail', car.id]"
+            class="car-card bg-white rounded-[28px] overflow-hidden relative group cursor-pointer"
+            [class]="'animate-fade-in delay-' + (i < 4 ? (i * 50 + 100) : 400)"
+            style="border: 1px solid rgba(37,99,235,0.1); box-shadow: 0 4px 20px rgba(37,99,235,0.07);">
+
+            <!-- Image Area -->
+            <div class="h-28 relative flex items-center justify-center p-3 rounded-t-[28px] circle-glow-bg overflow-hidden">
+              <!-- Shimmer hover overlay -->
+              <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <img [src]="car.image_url || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=400&auto=format&fit=crop'" 
+                   class="w-full h-full p-2 object-contain relative z-10 transition-transform duration-500 group-hover:scale-110 drop-shadow-md">
+              
+              <!-- Availability badge -->
+              <div class="absolute top-2 left-2 z-20">
+                <span *ngIf="car.display_status === 'available'" 
+                  class="px-1.5 py-0.5 text-[7px] font-black rounded-md uppercase tracking-wide"
+                  style="background: rgba(34,197,94,0.12); color: #16a34a; border: 1px solid rgba(34,197,94,0.25);">✓ Tersedia</span>
+                <span *ngIf="car.display_status !== 'available'" 
+                  class="px-1.5 py-0.5 text-[7px] font-black rounded-md uppercase tracking-wide"
+                  style="background: rgba(239,68,68,0.1); color: #dc2626; border: 1px solid rgba(239,68,68,0.2);">Tidak Tersedia</span>
+              </div>
+            </div>
+
+            <!-- Detail Area -->
+            <div class="p-3.5 pt-2 flex-1 flex flex-col">
+              <h3 class="text-xs font-black text-slate-900 truncate leading-tight">{{ car.name_car || car.nama_mobil || (car.brand + ' ' + car.type) }}</h3>
+              
+              <!-- Spec tags -->
+              <div class="flex gap-1 mt-1.5 flex-wrap">
+                <span class="px-1.5 py-0.5 rounded-lg text-[8px] font-bold uppercase tracking-wide" 
+                  style="background: rgba(37,99,235,0.06); color: #2563eb; border: 1px solid rgba(37,99,235,0.12);">{{ car.transmisi || 'Auto' }}</span>
+                <span class="px-1.5 py-0.5 rounded-lg text-[8px] font-bold" 
+                  style="background: rgba(100,116,139,0.07); color: #64748b; border: 1px solid rgba(100,116,139,0.12);">{{ car.passenger_capacity || 5 }} Seat</span>
+              </div>
+
+              <!-- Price & Arrow -->
+              <div class="mt-2 pt-2.5 border-t flex justify-between items-center" style="border-color: rgba(37,99,235,0.08);">
+                <div>
+                  <p class="text-[7px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Per Hari</p>
+                  <p class="text-xs font-black text-blue-600">Rp{{ (car.price || car.harga_sewa) | number }}</p>
+                </div>
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+                     style="background: linear-gradient(135deg, #dbeafe, #eff6ff); border: 1px solid rgba(37,99,235,0.15);">
+                  <ion-icon name="arrow-forward-outline" class="text-sm text-blue-600"></ion-icon>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</ion-content>
+
+<!-- Premium Floating Tab Bar -->
+<div class="fixed bottom-5 left-5 right-5 text-slate-400 rounded-[28px] z-50 flex justify-around items-center py-3.5 px-2 tab-bar-float animate-slide-up">
+  <a routerLink="/home" class="flex flex-col items-center gap-1 relative px-4">
+    <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+      <ion-icon name="home" class="text-lg text-white"></ion-icon>
+    </div>
+    <span class="text-[9px] font-black text-blue-600 uppercase tracking-wider">Home</span>
+  </a>
+  <a routerLink="/history" routerDirection="forward" class="flex flex-col items-center gap-1 relative px-4 hover:text-blue-500 transition-colors">
+    <div class="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-100">
+      <ion-icon name="compass-outline" class="text-lg text-slate-500"></ion-icon>
+    </div>
+    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Booking</span>
+  </a>
+  <a routerLink="/profile" routerDirection="forward" class="flex flex-col items-center gap-1 relative px-4 hover:text-blue-500 transition-colors">
+    <div class="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-100">
+      <ion-icon name="person-outline" class="text-lg text-slate-500"></ion-icon>
+    </div>
+    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Profil</span>
+  </a>
+</div>
+
+<!-- Modal Notifikasi -->
+<ion-modal [isOpen]="isNotificationsOpen" (didDismiss)="closeNotifications()">
+  <ng-template>
+    <div class="min-h-full flex flex-col bg-app text-slate-800 font-sans">
+      <div class="px-6 pt-14 pb-5 flex justify-between items-center" style="background: rgba(238,242,255,0.95); border-bottom: 1px solid rgba(37,99,235,0.08);">
+        <div>
+          <p class="text-[9px] font-bold text-blue-500 uppercase tracking-widest">Info Terkini</p>
+          <h2 class="text-lg font-black text-slate-900">Notifikasi Anda</h2>
+        </div>
+        <div class="flex gap-2">
+          <button *ngIf="notifications.length > 0" (click)="clearAllNotifications()" class="px-3 h-9 rounded-xl flex items-center justify-center text-[10px] font-black text-blue-600 uppercase tracking-wider active:scale-90 transition-transform" style="background: rgba(37,99,235,0.08);">
+            Bersihkan
+          </button>
+          <button (click)="closeNotifications()" class="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-slate-600 active:scale-90 transition-transform" style="border: 1px solid rgba(37,99,235,0.15);">
+            <ion-icon name="close-outline" class="text-lg"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-5 space-y-3">
+        <div *ngIf="notifications.length === 0" class="text-center py-16">
+          <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-3" style="border: 1px solid rgba(37,99,235,0.1);">
+            <ion-icon name="notifications-outline" class="text-2xl text-blue-300"></ion-icon>
+          </div>
+          <p class="text-xs font-bold text-slate-400">Tidak ada notifikasi baru.</p>
+        </div>
+        
+        <div *ngFor="let item of notifications" (click)="markNotificationAsRead(item)"
+          class="p-4 rounded-2xl transition-all cursor-pointer relative animate-fade-in"
+          [ngClass]="item.read_at ? 'bg-white' : 'bg-blue-50'"
+          [style]="item.read_at ? 'border: 1px solid #e2e8f0;' : 'border: 1px solid rgba(37,99,235,0.2); box-shadow: 0 2px 12px rgba(37,99,235,0.08);'">
+          
+          <div *ngIf="!item.read_at" class="absolute top-3.5 right-3.5 w-2 h-2 bg-blue-600 rounded-full"></div>
+          
+          <h4 class="text-xs font-black text-slate-900 pr-4">{{ item.title || 'Pemberitahuan' }}</h4>
+          <p class="text-xs text-slate-500 mt-1 font-light">{{ item.data?.message || item.message || item.content }}</p>
+          <p class="text-[9px] text-slate-400 mt-2">{{ item.created_at | date:'dd MMM yyyy, HH:mm' }}</p>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>
+
+<!-- Modal Cabang -->
+<ion-modal [isOpen]="isBranchesOpen" (didDismiss)="closeBranchesModal()">
+  <ng-template>
+    <div class="min-h-full flex flex-col bg-app text-slate-800 font-sans">
+      <div class="px-6 pt-14 pb-5 flex justify-between items-center" style="background: rgba(238,242,255,0.95); border-bottom: 1px solid rgba(37,99,235,0.08);">
+        <div>
+          <p class="text-[9px] font-bold text-blue-500 uppercase tracking-widest">Pilih Lokasi</p>
+          <h2 class="text-lg font-black text-slate-900">Cabang Sewa</h2>
+        </div>
+        <button (click)="closeBranchesModal()" class="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-slate-600 active:scale-90 transition-transform" style="border: 1px solid rgba(37,99,235,0.15);">
+          <ion-icon name="close-outline" class="text-lg"></ion-icon>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-5 space-y-3">
+        <div *ngFor="let branch of branches"
+          class="p-4 bg-white rounded-2xl transition-all animate-fade-in"
+          [style]="selectedBranchName === branch.name ? 'border: 1.5px solid rgba(37,99,235,0.4); box-shadow: 0 4px 16px rgba(37,99,235,0.12);' : 'border: 1px solid rgba(37,99,235,0.1);'">
+          
+          <div (click)="selectBranch(branch)" class="flex justify-between items-center cursor-pointer">
+            <div>
+              <h3 class="text-sm font-black" [class]="selectedBranchName === branch.name ? 'text-blue-700' : 'text-slate-900'">{{ branch.name }}</h3>
+              <p class="text-xs text-slate-400 mt-0.5 font-light">{{ branch.address || 'Alamat lengkap cabang' }}</p>
+            </div>
+            <ion-icon *ngIf="selectedBranchName === branch.name" name="checkmark-circle" class="text-blue-600 text-xl"></ion-icon>
+          </div>
+          
+          <!-- Google Maps Button -->
+          <button (click)="openMaps(branch)" 
+            class="mt-3 w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-97 transition-all"
+            style="background: rgba(37,99,235,0.06); color: #2563eb; border: 1px solid rgba(37,99,235,0.15);">
+            <ion-icon name="navigate-outline" class="text-sm"></ion-icon>
+            Buka di Google Maps
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>
