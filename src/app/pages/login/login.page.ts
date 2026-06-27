@@ -16,6 +16,9 @@ export class LoginPage implements OnInit {
     password: ''
   };
 
+  showPassword = false;
+  isLoading = false;
+
   // Forgot Password Flow State
   isForgotPasswordOpen = false;
   forgotPasswordStep: 'email' | 'otp' | 'reset' = 'email';

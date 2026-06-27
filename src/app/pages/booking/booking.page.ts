@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { RentalService } from '../../services/rental.service';
-import { ToastController, LoadingController, AlertController, NavController } from '@ionic/angular';
+import { ToastController, LoadingController, AlertController, NavController, Platform } from '@ionic/angular';
+import { Geolocation } from '@capacitor/geolocation';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-booking',
@@ -37,6 +39,8 @@ export class BookingPage implements OnInit {
   pickupMethod: string = 'cabang'; // 'cabang' or 'antar'
   deliveryAddress: string = '';
   
+  private backButtonSub?: Subscription;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -45,7 +49,8 @@ export class BookingPage implements OnInit {
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController,
     private alertCtrl: AlertController,
-    private navCtrl: NavController
+    private navCtrl: NavController,
+    private platform: Platform
   ) { }
 
   ngOnInit() {
@@ -55,6 +60,51 @@ export class BookingPage implements OnInit {
       this.loadCarDetail();
     }
     this.loadBranches();
+  }
+
+  ionViewDidEnter() {
+    this.backButtonSub = this.platform.backButton.subscribeWithPriority(10, (processNextHandler) => {
+      if (this.isPaymentModalOpen) {
+        this.confirmCancelBooking();
+      } else {
+        // Panggil fungsi konfirmasi keluar
+        this.goBack();
+      }
+    });
+  }
+
+  ionViewWillLeave() {
+    if (this.backButtonSub) {
+      this.backButtonSub.unsubscribe();
+    }
+  }
+
+  async confirmCancelBooking() {
+    const alert = await this.alertCtrl.create({
+      header: 'Batalkan Pesanan?',
+      message: 'Apakah Anda yakin ingin membatalkan pemesanan ini?',
+      buttons: [
+        { text: 'Tidak', role: 'cancel' },
+        { 
+          text: 'Ya, Batalkan', 
+          handler: () => { 
+            this.rental.cancelReservation(this.paymentId).subscribe({
+              next: () => {
+                this.isPaymentModalOpen = false;
+                this.router.navigate(['/home']);
+                this.showToast('Pesanan telah dibatalkan.', 'success');
+              },
+              error: () => {
+                this.isPaymentModalOpen = false;
+                this.router.navigate(['/home']);
+                this.showToast('Pesanan dibatalkan.', 'success');
+              }
+            });
+          } 
+        }
+      ]
+    });
+    await alert.present();
   }
 
   async goBack() {
@@ -160,16 +210,16 @@ export class BookingPage implements OnInit {
   }
 
   async getCurrentLocation(): Promise<{lat: number, lng: number} | null> {
-    return new Promise((resolve) => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-          (err) => resolve(null) // No fallback, return null
-        );
-      } else {
-        resolve(null);
-      }
-    });
+    try {
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 10000
+      });
+      return { lat: position.coords.latitude, lng: position.coords.longitude };
+    } catch(err) {
+      console.log('Gagal mendapatkan lokasi native, menggunakan fallback Karawang:', err);
+      return { lat: -6.322731, lng: 107.337651 };
+    }
   }
 
   async onSubmit(override: boolean = false) {
@@ -208,31 +258,8 @@ export class BookingPage implements OnInit {
       return;
     }
 
-    // Pengecekan Persetujuan Akses Lokasi (Disclosure)
-    const hasAgreed = localStorage.getItem('location_agreed');
-    if (hasAgreed !== 'true') {
-      const agreed = await new Promise((resolve) => {
-        this.alertCtrl.create({
-          header: 'Izinkan Akses Lokasi',
-          message: '<b>SewaMobilYuk memerlukan akses lokasi untuk:</b><br><br>' +
-                   '• Menentukan cabang rental terdekat.<br>' +
-                   '• Memastikan layanan tersedia di lokasi Anda.<br>' +
-                   '• Menghitung biaya pengantaran jika memilih layanan antar.<br><br>' +
-                   '<i>Lokasi hanya digunakan saat proses reservasi.</i>',
-          backdropDismiss: false,
-          buttons: [
-            { text: 'Batal', role: 'cancel', handler: () => resolve(false) },
-            { text: 'Izinkan', handler: () => resolve(true) }
-          ]
-        }).then(alert => alert.present());
-      });
-
-      if (!agreed) {
-         this.showToast('Akses lokasi diperlukan untuk memesan.', 'warning');
-         return;
-      }
-      localStorage.setItem('location_agreed', 'true');
-    }
+    // Pengecekan Persetujuan Akses Lokasi (Disclosure) sudah dipindah ke app.component.ts saat awal buka aplikasi.
+    // Kita langsung lanjutkan ke pemrosesan loading.
 
     const loading = await this.loadingCtrl.create({ message: 'Memproses pesanan...', spinner: 'circles' });
     await loading.present();
@@ -273,20 +300,19 @@ export class BookingPage implements OnInit {
     }
 
     const loc = await this.getCurrentLocation();
-
-    if (!loc) {
-      loading.dismiss();
-      this.showToast('Gagal mendapatkan lokasi. Harap pastikan GPS Anda menyala dan diizinkan!', 'danger');
-      return;
-    }
+    
+    // Walaupun gagal get location, kita sudah handle dengan fallback di getCurrentLocation.
+    // Jika tetap null karena suatu alasan sangat ekstrim, fallback lagi ke Karawang:
+    const finalLat = loc?.lat || -6.322731;
+    const finalLng = loc?.lng || 107.337651;
 
     let payload: any = {
       data_car_id: Number(this.bookingData.car_id),
       start_date: this.bookingData.tanggal_mulai,
       end_date: this.bookingData.tanggal_selesai,
       payment_method: this.bookingData.metode_pembayaran.toLowerCase(),
-      latitude: loc.lat,
-      longitude: loc.lng,
+      latitude: finalLat,
+      longitude: finalLng,
       pickupMethod: this.pickupMethod,
       branch_id: this.selectedBranchId,
       deliveryAddress: this.pickupMethod === 'antar' ? this.deliveryAddress : null
@@ -380,6 +406,12 @@ export class BookingPage implements OnInit {
   skipPaymentProof() {
     this.isPaymentModalOpen = false;
     this.showSuccessAlert();
+  }
+
+  payLater() {
+    this.isPaymentModalOpen = false;
+    this.router.navigate(['/history']);
+    this.showToast('Pesanan tersimpan di riwayat. Silakan lakukan pembayaran nanti.', 'success');
   }
 
   async showSuccessAlert() {

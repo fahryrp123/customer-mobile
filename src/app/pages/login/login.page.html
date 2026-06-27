@@ -48,10 +48,13 @@
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <ion-icon name="lock-closed-outline" class="text-blue-400 text-base"></ion-icon>
             </div>
-            <input type="password" [(ngModel)]="loginData.password"
-              class="w-full pl-11 pr-4 py-4 rounded-2xl text-slate-800 placeholder-slate-400 text-sm outline-none font-medium transition-all"
+            <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="loginData.password"
+              class="w-full pl-11 pr-12 py-4 rounded-2xl text-slate-800 placeholder-slate-400 text-sm outline-none font-medium transition-all"
               style="background: rgba(240,244,255,0.7); border: 1.5px solid rgba(37,99,235,0.12);"
               placeholder="••••••••">
+            <div class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer" (click)="showPassword = !showPassword">
+              <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" class="text-slate-400 text-lg hover:text-blue-500 transition-colors"></ion-icon>
+            </div>
           </div>
           <div class="flex justify-end mt-2">
             <a (click)="openForgotPasswordModal()" class="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">Lupa Password?</a>

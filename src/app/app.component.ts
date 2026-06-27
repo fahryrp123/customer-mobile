@@ -2,6 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from './services/api.service';
 import { RentalService } from './services/rental.service';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { Geolocation } from '@capacitor/geolocation';
+import { App } from '@capacitor/app';
+import { AlertController, Platform } from '@ionic/angular';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -13,10 +17,64 @@ export class AppComponent implements OnInit {
   private lastUnreadCount = 0;
   private lastRejectedIds: string[] = [];
 
-  constructor(private api: ApiService, private rental: RentalService) {}
+  constructor(
+    private api: ApiService, 
+    private rental: RentalService,
+    private alertCtrl: AlertController,
+    private router: Router,
+    private platform: Platform
+  ) {
+    this.initializeApp();
+  }
+
+  initializeApp() {
+    this.platform.ready().then(() => {
+      this.platform.backButton.subscribeWithPriority(10, async (processNextHandler) => {
+        if (this.router.url === '/home' || this.router.url === '/login' || this.router.url === '/welcome') {
+          const alert = await this.alertCtrl.create({
+            header: 'Keluar Aplikasi',
+            message: 'Apakah Anda yakin ingin keluar dari aplikasi SewaMobilYuk?',
+            buttons: [
+              { text: 'Batal', role: 'cancel' },
+              { text: 'Ya, Keluar', handler: () => App.exitApp() }
+            ]
+          });
+          await alert.present();
+        } else {
+          processNextHandler();
+        }
+      });
+    });
+  }
 
   async ngOnInit() {
     await LocalNotifications.requestPermissions();
+    
+    // Pengecekan Persetujuan Akses Lokasi (Disclosure) di awal
+    const hasAgreed = localStorage.getItem('location_agreed');
+    if (hasAgreed !== 'true') {
+      const alert = await this.alertCtrl.create({
+        header: 'Izinkan Akses Lokasi',
+        message: '<b>SewaMobilYuk memerlukan akses lokasi untuk:</b><br><br>' +
+                 '• Menentukan cabang rental terdekat.<br>' +
+                 '• Menemukan daftar mobil di sekitar Anda.<br>' +
+                 '• Menghitung biaya pengantaran jika memilih layanan antar.<br><br>' +
+                 '<i>Lokasi hanya digunakan saat aplikasi berjalan.</i>',
+        backdropDismiss: false,
+        buttons: [
+          { text: 'Mengerti', handler: async () => {
+             localStorage.setItem('location_agreed', 'true');
+             // Memicu prompt bawaan sistem secara transparan menembus ke OS
+             try {
+               await Geolocation.requestPermissions();
+             } catch(e) {
+               console.log('Error requesting location permission', e);
+             }
+          }}
+        ]
+      });
+      await alert.present();
+    }
     
     // Poll notifications every 10 seconds globally
     setInterval(() => {

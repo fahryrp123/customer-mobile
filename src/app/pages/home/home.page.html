@@ -23,11 +23,6 @@
       </div>
       
       <div class="flex items-center gap-2 animate-slide-up delay-100">
-        <!-- Profile Avatar -->
-        <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm"
-             style="background: linear-gradient(135deg, #dbeafe, #eff6ff); border: 1.5px solid #bfdbfe;">
-          <span class="text-[11px] font-black text-blue-600">{{ userName.substring(0, 2).toUpperCase() }}</span>
-        </div>
         <!-- Notification -->
         <div (click)="openNotifications()" class="w-9 h-9 bg-white rounded-xl flex items-center justify-center relative active:scale-90 transition-transform cursor-pointer"
              style="border: 1.5px solid rgba(37,99,235,0.15); box-shadow: 0 2px 8px rgba(37,99,235,0.08);">
@@ -127,7 +122,7 @@
             <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wide mt-0.5">Layanan</p>
           </div>
           <div class="bg-white rounded-2xl p-3.5 text-center" style="border: 1px solid rgba(37,99,235,0.1); box-shadow: 0 2px 12px rgba(37,99,235,0.06);">
-            <p class="text-xl font-black text-blue-600">{{ branches.length > 0 ? branches.length : 1 }}</p>
+            <p class="text-xl font-black text-blue-600">2</p>
             <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wide mt-0.5">Cabang</p>
           </div>
         </div>
@@ -176,10 +171,11 @@
 
         <!-- Cars Grid -->
         <div *ngIf="!isLoading && filteredCars.length > 0" class="grid grid-cols-2 gap-4">
-          <div *ngFor="let car of filteredCars; let i = index" [routerLink]="['/car-detail', car.id]"
-            class="car-card bg-white rounded-[28px] overflow-hidden relative group cursor-pointer"
+          <div *ngFor="let car of filteredCars; let i = index; trackBy: trackByCar" [routerLink]="['/car-detail', car.id]"
+            class="car-card bg-white rounded-[28px] overflow-hidden relative group cursor-pointer ion-activatable ripple-parent"
             [class]="'animate-fade-in delay-' + (i < 4 ? (i * 50 + 100) : 400)"
             style="border: 1px solid rgba(37,99,235,0.1); box-shadow: 0 4px 20px rgba(37,99,235,0.07);">
+            <ion-ripple-effect></ion-ripple-effect>
 
             <!-- Image Area -->
             <div class="h-28 relative flex items-center justify-center p-3 rounded-t-[28px] circle-glow-bg overflow-hidden">

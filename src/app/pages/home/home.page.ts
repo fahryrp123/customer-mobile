@@ -164,15 +164,45 @@ export class HomePage implements OnInit {
   loadCarsSilent() {
     this.api.getCars().subscribe({
       next: (res: any) => {
-        this.cars = res.data?.data || res.data || res || [];
-        this.cars = this.cars.map(c => ({
-          ...c,
-          display_status: c.availability_status || c.status || 'available'
-        }));
-        this.filterCars();
+        let newData = res.data?.data || res.data || res || [];
+        if (Array.isArray(newData)) {
+          newData = newData.map((c: any) => ({
+            ...c,
+            display_status: c.availability_status || c.status || 'available'
+          }));
+        }
+
+        // Cek secara spesifik field status dan ID untuk menghindari false positive (seperti perubahan updated_at)
+        let changed = false;
+        if (!this.cars || this.cars.length !== newData.length) {
+          changed = true;
+        } else {
+          // Asumsi urutan data dari API konsisten
+          for (let i = 0; i < this.cars.length; i++) {
+            if (
+              this.cars[i].id !== newData[i].id || 
+              this.cars[i].display_status !== newData[i].display_status ||
+              this.cars[i].harga_sewa !== newData[i].harga_sewa
+            ) {
+              changed = true;
+              break;
+            }
+          }
+        }
+
+        if (changed) {
+          this.cars = newData;
+          this.filterCars();
+        }
       },
-      error: () => {}
+      error: (err) => {
+        console.error('Failed to load cars silently', err);
+      }
     });
+  }
+
+  trackByCar(index: number, car: any) {
+    return car.id;
   }
 
   doRefresh(event: any) {
@@ -197,10 +227,10 @@ export class HomePage implements OnInit {
     if (this.searchQuery && this.searchQuery.trim() !== '') {
       const q = this.searchQuery.toLowerCase();
       result = result.filter(car => 
-        (car.name_car && car.name_car.toLowerCase().includes(q)) ||
-        (car.model && car.model.toLowerCase().includes(q)) ||
-        (car.kategori && car.kategori.toLowerCase().includes(q)) ||
-        (car.description && car.description.toLowerCase().includes(q))
+        ((car.name_car || car.nama_mobil || car.type || '')?.toLowerCase().includes(q)) ||
+        ((car.model || '')?.toLowerCase().includes(q)) ||
+        ((car.kategori || '')?.toLowerCase().includes(q)) ||
+        ((car.description || car.deskripsi || '')?.toLowerCase().includes(q))
       );
     }
 
@@ -211,10 +241,10 @@ export class HomePage implements OnInit {
       result = result.filter(car => {
         const carCat = (car.kategori || '').toLowerCase();
         const carModel = (car.model || '').toLowerCase();
-        const carName = (car.name_car || '').toLowerCase();
+        const carName = (car.name_car || car.nama_mobil || car.type || '').toLowerCase();
         
         if (catName === 'premium') {
-          return carCat.includes('premium') || carModel.includes('premium') || carModel.includes('sport') || Number(car.price) >= 500000;
+          return carCat.includes('premium') || carModel.includes('premium') || carModel.includes('sport') || Number(car.price || car.harga_sewa || 0) >= 500000;
         }
         return carCat.includes(catName) || carModel.includes(catName) || carName.includes(catName);
       });
